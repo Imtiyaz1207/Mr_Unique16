@@ -1,26 +1,26 @@
 <body style="margin:0;padding:0;font-family:Arial, sans-serif;background:#111;color:#fff;">
 
-    <!-- UPLOAD PANEL (SLIDES DOWN, HIDDEN INITIALLY) -->
+    <!-- UPLOAD PANEL -->
     <div id="uploadPanel"
         style="
             width:100%;
             background:#1e1e1e;
             border-bottom:1px solid #333;
-            padding:16px;
+            padding:30px;
             position:fixed;
-            top:-300px;              /* hidden initially */
+            top:-500px;
             left:0;
             z-index:50;
             transition:0.35s ease;
+            min-height: 200px;
+            box-sizing: border-box;
         "
     >
-        <h2 style="margin-bottom:10px;color:#00e1ff;font-size:18px;">
-            Upload Your Reel
-        </h2>
+        <h2 style="margin-bottom:10px;color:#00e1ff;font-size:40px;">Upload Your Reel</h2>
 
         <form id="userreels" method="POST" 
               action="/userupload_reels" enctype="multipart/form-data"
-              style="display:flex;flex-direction:column;gap:10px;">
+              style="display:flex;flex-direction:column;gap:50px;">
 
             <input type="hidden" name="uploader" value="SHAIK">
 
@@ -31,7 +31,7 @@
                         color:#fff;
                         border-radius:10px;
                         border:1px solid #444;
-                        font-size:14px;
+                        font-size:40px;
                    ">
 
             <button type="submit"
@@ -41,7 +41,7 @@
                         border:none;
                         border-radius:10px;
                         color:#000;
-                        font-size:15px;
+                        font-size:30px;
                         font-weight:bold;
                         cursor:pointer;
                     ">
@@ -61,17 +61,14 @@
                controls></video>
     </div>
 
-
-
-
     <!-- FLOATING UPLOAD BUTTON -->
     <button id="uploadBtn"
         style="
             position:fixed;
-            bottom:20px;
-            right:20px;
-            width:60px;
-            height:60px;
+            bottom:40px;
+            right:80px;
+            width:100px;
+            height:100px;
             border-radius:50%;
             background:#00e1ff;
             border:none;
@@ -85,9 +82,6 @@
         +
     </button>
 
-
-
-
     <!-- FULLSCREEN REELS SCROLL AREA -->
     <div id="reelsContainer"
          style="
@@ -99,8 +93,6 @@
          ">
     </div>
 
-
-
 <script>
 // ------------------ REELS AUTOPLAY LOGIC ------------------
 function applyAutoPlay() {
@@ -111,10 +103,8 @@ function applyAutoPlay() {
 
             if (entry.isIntersecting) {
                 video.play();
-
-                video.muted = false;   // ⭐ CHANGED — unmuting reel
-                video.volume = 1.0;    // ⭐ CHANGED — full volume
-
+                video.muted = false;
+                video.volume = 1.0;
             } else {
                 video.pause();
             }
@@ -126,9 +116,8 @@ function applyAutoPlay() {
     });
 }
 
-
-
 // ------------------ LOAD ALL REELS ------------------
+// ------------------ LOAD ALL REELS (SHUFFLED) ------------------
 async function loadReels() {
     const res = await fetch("/all_user_reels");
     const data = await res.json();
@@ -138,7 +127,10 @@ async function loadReels() {
     const container = document.getElementById("reelsContainer");
     container.innerHTML = "";
 
-    data.urls.forEach(url => {
+    // ----------- SHUFFLE THE URLS ----------
+    const shuffledUrls = data.urls.sort(() => Math.random() - 0.5);
+
+    shuffledUrls.forEach((url, index) => {
         if (!url) return;
 
         const div = document.createElement("div");
@@ -152,6 +144,7 @@ async function loadReels() {
             align-items:center;
             background:#000;
             overflow:hidden;
+            position:relative;
         `;
 
         div.innerHTML = `
@@ -160,18 +153,59 @@ async function loadReels() {
                 style="width:100%;height:100%;object-fit:contain;"
                 playsinline
                 controls
+                autoplay
             ></video>
+            <div class="controls" style="
+                position:absolute;
+                top:50%;
+                right:10px;
+                transform:translateY(-50%);
+                display:flex;
+                flex-direction:column;
+                gap:10px;
+                z-index:5;
+            ">
+                <button class="playBtn">Pause</button>
+                <button class="muteBtn">Unmute</button>
+                <button class="downloadBtn">Download</button>
+            </div>
         `;
 
         container.appendChild(div);
+
+        const videoEl = div.querySelector("video");
+        const playBtn = div.querySelector(".playBtn");
+        const muteBtn = div.querySelector(".muteBtn");
+        const downloadBtn = div.querySelector(".downloadBtn");
+
+        playBtn.addEventListener("click", e => {
+            e.stopPropagation();
+            if(videoEl.paused){ videoEl.play(); playBtn.innerText='Pause'; }
+            else { videoEl.pause(); playBtn.innerText='Play'; }
+        });
+
+        muteBtn.addEventListener("click", e => {
+            e.stopPropagation();
+            videoEl.muted = !videoEl.muted;
+            muteBtn.innerText = videoEl.muted ? 'Unmute' : 'Mute';
+        });
+
+        downloadBtn.addEventListener("click", e => {
+            e.stopPropagation();
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `video_${index+1}.mp4`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
     });
 
-    applyAutoPlay(); // enable autoplay
+    applyAutoPlay();
 }
 
+
 loadReels();
-
-
 
 // ------------------ SLIDE PANEL OPEN / CLOSE ------------------
 const panel = document.getElementById("uploadPanel");
@@ -187,8 +221,6 @@ btn.addEventListener("click", () => {
         panelOpen = false;
     }
 });
-
-
 
 // ------------------ PREVIEW ------------------
 document.getElementById("userFile").addEventListener("change", e => {
