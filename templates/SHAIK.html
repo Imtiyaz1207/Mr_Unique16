@@ -1,0 +1,212 @@
+<body style="margin:0;padding:0;font-family:Arial, sans-serif;background:#111;color:#fff;">
+
+    <!-- UPLOAD PANEL (SLIDES DOWN, HIDDEN INITIALLY) -->
+    <div id="uploadPanel"
+        style="
+            width:100%;
+            background:#1e1e1e;
+            border-bottom:1px solid #333;
+            padding:16px;
+            position:fixed;
+            top:-300px;              /* hidden initially */
+            left:0;
+            z-index:50;
+            transition:0.35s ease;
+        "
+    >
+        <h2 style="margin-bottom:10px;color:#00e1ff;font-size:18px;">
+            Upload Your Reel
+        </h2>
+
+        <form id="userreels" method="POST" 
+              action="/userupload_reels" enctype="multipart/form-data"
+              style="display:flex;flex-direction:column;gap:10px;">
+
+            <input type="hidden" name="uploader" value="SHAIK">
+
+            <input type="file" name="video" id="userFile" accept="video/*" required
+                   style="
+                        padding:12px;
+                        background:#222;
+                        color:#fff;
+                        border-radius:10px;
+                        border:1px solid #444;
+                        font-size:14px;
+                   ">
+
+            <button type="submit"
+                    style="
+                        padding:12px;
+                        background:#00e1ff;
+                        border:none;
+                        border-radius:10px;
+                        color:#000;
+                        font-size:15px;
+                        font-weight:bold;
+                        cursor:pointer;
+                    ">
+                Upload Reel
+            </button>
+        </form>
+
+        <video id="userPreview"
+               style="
+                    display:none;
+                    width:100%;
+                    max-width:350px;
+                    margin-top:12px;
+                    border-radius:12px;
+                    border:2px solid #00e1ff;
+               "
+               controls></video>
+    </div>
+
+
+
+
+    <!-- FLOATING UPLOAD BUTTON -->
+    <button id="uploadBtn"
+        style="
+            position:fixed;
+            bottom:20px;
+            right:20px;
+            width:60px;
+            height:60px;
+            border-radius:50%;
+            background:#00e1ff;
+            border:none;
+            font-size:30px;
+            font-weight:bold;
+            color:#000;
+            cursor:pointer;
+            box-shadow:0 0 12px rgba(0,0,0,0.4);
+            z-index:60;
+        ">
+        +
+    </button>
+
+
+
+
+    <!-- FULLSCREEN REELS SCROLL AREA -->
+    <div id="reelsContainer"
+         style="
+            width:100%;
+            height:100vh;
+            overflow-y:scroll;
+            scroll-snap-type:y mandatory;
+            -webkit-overflow-scrolling:touch;
+         ">
+    </div>
+
+
+
+<script>
+// ------------------ REELS AUTOPLAY LOGIC ------------------
+function applyAutoPlay() {
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            const video = entry.target.querySelector("video");
+            if (!video) return;
+
+            if (entry.isIntersecting) {
+                video.play();
+
+                video.muted = false;   // ⭐ CHANGED — unmuting reel
+                video.volume = 1.0;    // ⭐ CHANGED — full volume
+
+            } else {
+                video.pause();
+            }
+        });
+    }, { threshold: 0.7 });
+
+    document.querySelectorAll(".reel").forEach(reel => {
+        observer.observe(reel);
+    });
+}
+
+
+
+// ------------------ LOAD ALL REELS ------------------
+async function loadReels() {
+    const res = await fetch("/all_user_reels");
+    const data = await res.json();
+
+    if (!data.urls || data.urls.length === 0) return;
+
+    const container = document.getElementById("reelsContainer");
+    container.innerHTML = "";
+
+    data.urls.forEach(url => {
+        if (!url) return;
+
+        const div = document.createElement("div");
+        div.className = "reel";
+        div.style = `
+            height:100vh;
+            width:100%;
+            scroll-snap-align:start;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            background:#000;
+            overflow:hidden;
+        `;
+
+        div.innerHTML = `
+            <video 
+                src="${url}"
+                style="width:100%;height:100%;object-fit:contain;"
+                playsinline
+                controls
+            ></video>
+        `;
+
+        container.appendChild(div);
+    });
+
+    applyAutoPlay(); // enable autoplay
+}
+
+loadReels();
+
+
+
+// ------------------ SLIDE PANEL OPEN / CLOSE ------------------
+const panel = document.getElementById("uploadPanel");
+const btn = document.getElementById("uploadBtn");
+let panelOpen = false;
+
+btn.addEventListener("click", () => {
+    if (!panelOpen) {
+        panel.style.top = "0px";
+        panelOpen = true;
+    } else {
+        panel.style.top = "-300px";
+        panelOpen = false;
+    }
+});
+
+
+
+// ------------------ PREVIEW ------------------
+document.getElementById("userFile").addEventListener("change", e => {
+    const file = e.target.files[0];
+    const preview = document.getElementById("userPreview");
+
+    if (file) {
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = "block";
+        preview.load();
+    }
+});
+
+document.getElementById("userreels").addEventListener("submit", () => {
+    setTimeout(() => {
+        document.getElementById("userPreview").style.display = "none";
+    }, 500);
+});
+</script>
+
+</body>

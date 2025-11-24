@@ -1,0 +1,11 @@
+Flask
+python-dotenv
+cloudinary
+requests
+gunicorn==21.2.0
+pytz==2024.1
+
+
+
+
+
