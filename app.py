@@ -73,6 +73,9 @@ def index():
 def main():
     return render_template('main.html')
 
+@app.route('/SHAIK')
+def SHAIK():
+    return render_template('SHAIK.html')
 
 # ---------------- PASSWORD CHECK ----------------
 @app.route('/save_password', methods=['POST'])
@@ -183,9 +186,7 @@ def userupload_reels():
 
 
 # ---------------- VIEW PAGES ----------------
-@app.route('/SHAIK')
-def SHAIK():
-    return render_template('SHAIK.html')
+
 
 
 # ---------------- GET LATEST STORIES ----------------
