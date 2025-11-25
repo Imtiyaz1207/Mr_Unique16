@@ -1,4 +1,56 @@
 <body style="margin:0;padding:0;font-family:Arial, sans-serif;background:#111;color:#fff;">
+<style>
+    /* Upload + Button Hover */
+    #uploadBtn {
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    #uploadBtn:hover {
+        transform: scale(1.2); /* Grow */
+        background: #33ffff; /* Lighter blue */
+        box-shadow: 0 0 20px rgba(0, 225, 255, 0.8); /* Glow */
+    }
+
+    /* Home Button Hover */
+    #homeBtn {
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    #homeBtn:hover {
+        transform: scale(1.2); /* Grow */
+        background: #ff8a50; /* Lighter orange */
+        box-shadow: 0 0 20px rgba(255, 87, 34, 0.8); /* Glow */
+    }
+</style>
+
+<!---------- SLIDE OUT ANIMATION STYLE ------------------>
+<style>
+    /* Slide out current page to left */
+    .slide-out-left {
+        animation: slideOutLeft 0.5s forwards;
+    }
+
+    @keyframes slideOutLeft {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(-100%); opacity: 0; }
+    }
+
+    /* Slide in new page from right */
+    .slide-in-right {
+        animation: slideInRight 0.5s forwards;
+    }
+
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Optional: make body overflow hidden during animation */
+    body {
+        overflow-x: hidden;
+    }
+</style>
+
 
     <!-- UPLOAD PANEL -->
     <div id="uploadPanel"
@@ -16,6 +68,8 @@
             box-sizing: border-box;
         "
     >
+
+
         <h2 style="margin-bottom:10px;color:#00e1ff;font-size:40px;">Upload Your Reel</h2>
 
         <form id="userreels" method="POST" 
@@ -80,6 +134,26 @@
             z-index:60;
         ">
         +
+    </button>
+     <!-- HOME BUTTON --HOME BUTTON -------------------------->
+   <button id="homeBtn"
+      style="
+            position:fixed;
+            bottom:40px;
+            left:60px;          /* LEFT SIDE */
+            width:100px;
+            height:100px;
+            border-radius:50%;
+            background:#d44295;  /* Different color for distinction */
+            border:none;
+            font-size:30px;
+            font-weight:bold;
+            color:#fff;
+            cursor:pointer;
+            box-shadow:0 0 12px rgba(0,0,0,0.4);
+            z-index:60;
+        ">
+        Home
     </button>
 
     <!-- FULLSCREEN REELS SCROLL AREA -->
@@ -199,19 +273,24 @@ async function loadReels() {
         const playBtn = div.querySelector(".playBtn");
         const muteBtn = div.querySelector(".muteBtn");
         const downloadBtn = div.querySelector(".downloadBtn");
+// Set initial mute button text
+
+
+        muteBtn.innerText = videoEl.muted ? 'Unmute' : 'Mute';
+// Play/Pause button logic
 
         playBtn.addEventListener("click", e => {
             e.stopPropagation();
             if(videoEl.paused){ videoEl.play(); playBtn.innerText='Pause'; }
             else { videoEl.pause(); playBtn.innerText='Play'; }
         });
-
+// Mute/Unmute button logic
         muteBtn.addEventListener("click", e => {
             e.stopPropagation();
             videoEl.muted = !videoEl.muted;
             muteBtn.innerText = videoEl.muted ? 'Unmute' : 'Mute';
         });
-
+// Download button logic
         downloadBtn.addEventListener("click", e => {
             e.stopPropagation();
             const a = document.createElement('a');
@@ -243,6 +322,19 @@ btn.addEventListener("click", () => {
         panelOpen = false;
     }
 });
+
+// ------------------ HOME BUTTON REDIRECT ------------------
+const homeBtn = document.getElementById("homeBtn");
+homeBtn.addEventListener("click", () => {
+    // Slide out current page to left
+    document.body.classList.add("slide-out-left");
+
+    // Redirect after animation
+    setTimeout(() => {
+        window.location.href = "/main"; // your main page route
+    }, 500); // 0.5s matches animation
+});
+
 
 // ------------------ PREVIEW ------------------
 document.getElementById("userFile").addEventListener("change", e => {
